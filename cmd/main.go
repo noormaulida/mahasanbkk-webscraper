@@ -5,11 +5,10 @@ import (
 	"mahasanbkk-webscraper/src/webscraper"
 
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
+	"log"
 	"time"
 
+	"github.com/gofiber/fiber/v2"
 	cron "github.com/robfig/cron/v3"
 )
 
@@ -23,9 +22,11 @@ func main() {
 	scheduler.AddFunc("*/15 * * * *", WebScraper)
 	go scheduler.Start()
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	app := fiber.New()
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Hello, your bot dev is up 🚀")
+	})
+	log.Fatal(app.Listen(":3000"))
 }
 
 func WebScraper() {

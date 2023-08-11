@@ -55,3 +55,6 @@ cover.html
 # coverage output files
 coverage.*
 
+main
+
+deploy-script.sh
