@@ -54,12 +54,12 @@ func DoMagic() {
 	})
 
 	c.OnHTML("div.available-table-body", func(h *colly.HTMLElement) {
-		txt := h.ChildText("h4.available-table-sorry")
+		// Create new Discord Session
+		discord, err := discordgo.New("Bot " + config.ConfigData.DiscordToken)
+		mahasanChannelId := config.ConfigData.MahasanChannelID
 
+		txt := h.ChildText("h4.available-table-sorry")
 		if txt != "Sorry, there is no table available at the moment." {
-			// Create new Discord Session
-			mahasanChannelId := config.ConfigData.MahasanChannelID
-			discord, err := discordgo.New("Bot " + config.ConfigData.DiscordToken)
 
 			if err != nil {
 				log.Fatalln("cannot create discord session. err ", err)
@@ -71,7 +71,7 @@ func DoMagic() {
 				schedule.Notes = note
 				availableScheds = append(availableScheds, schedule)
 			})
-			words := "@everyone Available Schedule:\n"
+			words := "@everyone Available Schedule: " + time.Now().Format("2006-01-02 15:04:05") + "\n"
 			fmt.Println(words)
 			for _, sched := range availableScheds {
 				fmt.Println(sched.Notes)
@@ -80,7 +80,8 @@ func DoMagic() {
 			words += "--------------------------------------"
 			discord.ChannelMessageSend(mahasanChannelId, words)
 		} else {
-			fmt.Println("No available schedule")
+			fmt.Println("No available schedule " + time.Now().Format("2006-01-02 15:04:05"))
+			discord.ChannelMessageSend(mahasanChannelId, "No available schedule")
 		}
 	})
 
