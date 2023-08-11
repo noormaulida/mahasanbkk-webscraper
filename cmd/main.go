@@ -6,6 +6,7 @@ import (
 
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,8 +16,9 @@ import (
 func main() {
 	config.Load(".")
 
-	jakartaTime, _ := time.LoadLocation("Asia/Jakarta")
-	scheduler := cron.New(cron.WithLocation(jakartaTime))
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
+	scheduler := cron.New()
 	defer scheduler.Stop()
 
 	scheduler.AddFunc("*/15 * * * *", WebScraper)
@@ -27,6 +29,7 @@ func main() {
 		return c.SendString("Hello, your bot dev is up 🚀")
 	})
 	log.Fatal(app.Listen(":3000"))
+	wg.Wait()
 }
 
 func WebScraper() {
