@@ -71,12 +71,14 @@ func DoMagic() {
 				schedule.Notes = note
 				availableScheds = append(availableScheds, schedule)
 			})
-			fmt.Println("Available Schedule:")
-			discord.ChannelMessageSend(mahasanChannelId, "@everyone Available Schedule:")
+			words := "@everyone Available Schedule:\n"
+			fmt.Println(words)
 			for _, sched := range availableScheds {
 				fmt.Println(sched.Notes)
-				discord.ChannelMessageSend(mahasanChannelId, sched.Notes)
+				words += (sched.Notes + "\n")
 			}
+			words += "--------------------------------------"
+			discord.ChannelMessageSend(mahasanChannelId, words)
 		} else {
 			fmt.Println("No available schedule")
 		}
