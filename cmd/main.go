@@ -28,7 +28,7 @@ func main() {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Hello, your bot dev is up 🚀")
 	})
-	log.Fatal(app.Listen(":3000"))
+	log.Fatal(app.Listen(":" + config.ConfigData.ServerPort))
 	wg.Wait()
 }
 

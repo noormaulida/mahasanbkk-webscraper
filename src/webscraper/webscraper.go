@@ -77,14 +77,14 @@ func DoMagic() {
 				fmt.Println(sched.Notes)
 				words += (sched.Notes + "\n")
 			}
-			words += "Sent from " + config.ConfigData.ServerEnv + " environment\n"
+			words += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
 			words += "--------------------------------------"
 			discord.ChannelMessageSend(mahasanChannelId, words)
 		} else {
 			nowords := "No available schedule " + time.Now().Format("2006-01-02 15:04:05") + "\n"
-			nowords += "Sent from " + config.ConfigData.ServerEnv + " environment\n"
+			nowords += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
 			nowords += "--------------------------------------"
-			discord.ChannelMessageSend(mahasanChannelId, nowords)
+			// discord.ChannelMessageSend(mahasanChannelId, nowords)
 			fmt.Println(nowords)
 		}
 	})
