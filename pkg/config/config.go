@@ -7,6 +7,7 @@ import (
 type Config struct {
 	ServerHost string `mapstructure:"SERVER_HOST"`
 	ServerPort string `mapstructure:"SERVER_PORT"`
+	ServerEnv  string `mapstructure:"SERVER_ENV"`
 
 	MahasanUrl       string `mapstructure:"MAHASAN_URL"`
 	MahasanChannelID string `mapstructure:"MAHASAN_CHANNEL_ID"`
