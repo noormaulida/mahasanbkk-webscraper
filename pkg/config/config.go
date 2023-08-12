@@ -10,6 +10,7 @@ type Config struct {
 	ServerEnv  string `mapstructure:"SERVER_ENV"`
 
 	MahasanUrl       string `mapstructure:"MAHASAN_URL"`
+	MahasanSubUrl    string `mapstructure:"MAHASAN_SUB_URL"`
 	MahasanChannelID string `mapstructure:"MAHASAN_CHANNEL_ID"`
 	DiscordToken     string `mapstructure:"DISCORD_TOKEN"`
 }

@@ -15,7 +15,7 @@ import (
 )
 
 func DoMagic() {
-	url := config.ConfigData.MahasanUrl
+	url := config.ConfigData.MahasanUrl + config.ConfigData.MahasanSubUrl
 
 	availableScheds := []entities.Schedule{}
 
@@ -58,6 +58,12 @@ func DoMagic() {
 		discord, err := discordgo.New("Bot " + config.ConfigData.DiscordToken)
 		mahasanChannelId := config.ConfigData.MahasanChannelID
 
+		// Set prefix of notif
+		var prefix string
+		if config.ConfigData.ServerEnv == "production" {
+			prefix = "@everyone"
+		}
+
 		txt := h.ChildText("h4.available-table-sorry")
 		if txt != "Sorry, there is no table available at the moment." {
 			if err != nil {
@@ -65,14 +71,15 @@ func DoMagic() {
 			}
 
 			h.ForEach("a", func(_ int, el *colly.HTMLElement) {
+				hrefLink := el.Attr("href")
+				link := config.ConfigData.MahasanUrl + hrefLink[1:]
 				guest := el.ChildText("div.available-table-content > div:nth-child(1)")
 				time := el.ChildText("div.available-table-content > div:nth-child(2)")
 				schedule := entities.Schedule{}
-				schedule.Notes = guest + " : " + time
+				schedule.Notes = guest + " : " + time + " - " + link
 				availableScheds = append(availableScheds, schedule)
 			})
-			words := "@everyone Available Schedule: \n"
-			fmt.Println(words)
+			words := prefix + " Available Schedule: \n"
 			for _, sched := range availableScheds {
 				fmt.Println(sched.Notes)
 				words += (sched.Notes + "\n")
@@ -80,6 +87,7 @@ func DoMagic() {
 			words += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
 			words += "--------------------------------------"
 			discord.ChannelMessageSend(mahasanChannelId, words)
+			fmt.Println(words)
 		} else {
 			nowords := "No available schedule \n"
 			nowords += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
