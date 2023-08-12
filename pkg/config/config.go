@@ -13,6 +13,8 @@ type Config struct {
 	MahasanSubUrl    string `mapstructure:"MAHASAN_SUB_URL"`
 	MahasanChannelID string `mapstructure:"MAHASAN_CHANNEL_ID"`
 	DiscordToken     string `mapstructure:"DISCORD_TOKEN"`
+	DiscordAppId     string `mapstructure:"DISCORD_APP_ID"`
+	DiscordGuildId   string `mapstructure:"DISCORD_GUILD_ID"`
 }
 
 var ConfigData *Config

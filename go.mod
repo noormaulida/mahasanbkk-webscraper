@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/bwmarrin/discordgo v0.27.1
 	github.com/gocolly/colly v1.2.0
+	github.com/gofiber/fiber/v2 v2.48.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/viper v1.16.0
 )
@@ -18,7 +19,6 @@ require (
 	github.com/antchfx/xpath v1.2.4 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/gofiber/fiber/v2 v2.48.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/uuid v1.3.0 // indirect

@@ -2,7 +2,6 @@ package webscraper
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 	"time"
@@ -14,7 +13,7 @@ import (
 	"github.com/gocolly/colly"
 )
 
-func DoMagic() {
+func DoMagic(discord *discordgo.Session, forcely bool) {
 	url := config.ConfigData.MahasanUrl + config.ConfigData.MahasanSubUrl
 
 	availableScheds := []entities.Schedule{}
@@ -54,8 +53,6 @@ func DoMagic() {
 	})
 
 	c.OnHTML("div.available-table-body", func(h *colly.HTMLElement) {
-		// Create new Discord Session
-		discord, err := discordgo.New("Bot " + config.ConfigData.DiscordToken)
 		mahasanChannelId := config.ConfigData.MahasanChannelID
 
 		// Set prefix of notif
@@ -66,10 +63,6 @@ func DoMagic() {
 
 		txt := h.ChildText("h4.available-table-sorry")
 		if txt != "Sorry, there is no table available at the moment." {
-			if err != nil {
-				log.Fatalln("cannot create discord session. err ", err)
-			}
-
 			h.ForEach("a", func(_ int, el *colly.HTMLElement) {
 				hrefLink := el.Attr("href")
 				link := config.ConfigData.MahasanUrl + hrefLink[1:]
@@ -92,7 +85,9 @@ func DoMagic() {
 			nowords := "No available schedule \n"
 			nowords += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
 			nowords += "--------------------------------------"
-			// discord.ChannelMessageSend(mahasanChannelId, nowords)
+			if forcely {
+				discord.ChannelMessageSend(mahasanChannelId, nowords)
+			}
 			fmt.Println(nowords)
 		}
 	})
