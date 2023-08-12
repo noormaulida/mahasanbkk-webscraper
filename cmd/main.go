@@ -21,7 +21,11 @@ func main() {
 	scheduler := cron.New()
 	defer scheduler.Stop()
 
-	scheduler.AddFunc("*/15 * * * *", WebScraper)
+	if config.ConfigData.ServerEnv == "local" {
+		scheduler.AddFunc("*/1 * * * *", WebScraper)
+	} else {
+		scheduler.AddFunc("*/5 * * * *", WebScraper)
+	}
 	go scheduler.Start()
 
 	app := fiber.New()

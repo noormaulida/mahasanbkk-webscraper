@@ -60,18 +60,18 @@ func DoMagic() {
 
 		txt := h.ChildText("h4.available-table-sorry")
 		if txt != "Sorry, there is no table available at the moment." {
-
 			if err != nil {
 				log.Fatalln("cannot create discord session. err ", err)
 			}
 
 			h.ForEach("a", func(_ int, el *colly.HTMLElement) {
-				note := el.ChildText("div.available-table-content")
+				guest := el.ChildText("div.available-table-content > div:nth-child(1)")
+				time := el.ChildText("div.available-table-content > div:nth-child(2)")
 				schedule := entities.Schedule{}
-				schedule.Notes = note
+				schedule.Notes = guest + " : " + time
 				availableScheds = append(availableScheds, schedule)
 			})
-			words := "@everyone Available Schedule: " + time.Now().Format("2006-01-02 15:04:05") + "\n"
+			words := "@everyone Available Schedule: \n"
 			fmt.Println(words)
 			for _, sched := range availableScheds {
 				fmt.Println(sched.Notes)
@@ -81,7 +81,7 @@ func DoMagic() {
 			words += "--------------------------------------"
 			discord.ChannelMessageSend(mahasanChannelId, words)
 		} else {
-			nowords := "No available schedule " + time.Now().Format("2006-01-02 15:04:05") + "\n"
+			nowords := "No available schedule \n"
 			nowords += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
 			nowords += "--------------------------------------"
 			// discord.ChannelMessageSend(mahasanChannelId, nowords)
