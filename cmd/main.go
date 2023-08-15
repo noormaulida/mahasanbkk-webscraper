@@ -3,6 +3,7 @@ package main
 import (
 	"mahasanbkk-webscraper/pkg/config"
 	"mahasanbkk-webscraper/src/discord"
+	"mahasanbkk-webscraper/src/line"
 	"mahasanbkk-webscraper/src/webscraper"
 
 	"fmt"
@@ -13,27 +14,41 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
-	"github.com/gofiber/fiber/v2"
+	"net/http"
 	cron "github.com/robfig/cron/v3"
-)
-
-var (
-	discordSession *discordgo.Session
-	err            error
 )
 
 func main() {
 	config.Load(".")
-
-	// Create new Discord Session
-	discordSession, err = discordgo.New("Bot " + config.ConfigData.DiscordToken)
-	if err != nil {
-		log.Fatalln("cannot create discord session. err ", err)
-	}
-
+	config.InitSession()
+	
+	
 	wg := &sync.WaitGroup{}
 	wg.Add(1)
+
+	AddScheduler()
+	DiscordWebhook()
+	ApplyRouter()
+
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+	<-sig
+	wg.Wait()
+}
+
+func ApplyRouter() {
+	http.HandleFunc("/mahasan-bot-status", func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprintf(w, "Hello, your mahasan bot dev is up 🚀")
+	})
+	http.HandleFunc("/line-webhook", func(writer http.ResponseWriter, req *http.Request) {
+		LineWebhook(writer, req)
+	})
+
+	fmt.Println("🚀 Server is up at port 3000 🚀")
+	log.Fatal(http.ListenAndServe(":"+ config.ConfigData.ServerPort, nil))
+}
+
+func AddScheduler() {
 	scheduler := cron.New()
 	defer scheduler.Stop()
 
@@ -42,27 +57,25 @@ func main() {
 	} else {
 		scheduler.AddFunc("*/2 * * * *", WebScraper)
 	}
+
 	go scheduler.Start()
-	DiscordCommand()
-
-	app := fiber.New()
-	app.Get("/mahasan-bot-status", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, your mahasan bot dev is up 🚀")
-	})
-	log.Fatal(app.Listen(":" + config.ConfigData.ServerPort))
-
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
-	wg.Wait()
 }
 
 func WebScraper() {
 	fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " WebScraper is running.\n")
-	webscraper.DoMagic(discordSession, false)
+	webscraper.DoMagic(false)
 }
 
-func DiscordCommand() {
-	fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " Discord Command is running.\n")
-	discord.AvailableCommand(discordSession)
+func DiscordWebhook() {
+	if config.ConfigData.DiscordStatus == "on" {	
+		fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " Discord webhook is running.\n")
+		discord.AvailableCommand()
+	}
+}
+
+func LineWebhook(writer http.ResponseWriter, req *http.Request) {
+	if config.ConfigData.LineStatus == "on" {	
+		fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " Line webhook is running.\n")
+		line.Webhook(writer, req)
+	}
 }

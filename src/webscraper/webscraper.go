@@ -11,11 +11,13 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/gocolly/colly"
+	"github.com/line/line-bot-sdk-go/v7/linebot"
 )
 
-func DoMagic(discord *discordgo.Session, forcely bool) {
+func DoMagic(forcely bool) {
 	url := config.ConfigData.MahasanUrl + config.ConfigData.MahasanSubUrl
-
+	discord := config.DiscordSession
+	mahasanChannelID := config.ConfigData.MahasanChannelID
 	availableScheds := []entities.Schedule{}
 
 	fmt.Println("--- Scrapping Started ---")
@@ -53,8 +55,6 @@ func DoMagic(discord *discordgo.Session, forcely bool) {
 	})
 
 	c.OnHTML("div.available-table-body", func(h *colly.HTMLElement) {
-		mahasanChannelId := config.ConfigData.MahasanChannelID
-
 		// Set prefix of notif
 		var prefix string
 		if config.ConfigData.ServerEnv == "production" {
@@ -79,14 +79,14 @@ func DoMagic(discord *discordgo.Session, forcely bool) {
 			}
 			words += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
 			words += "--------------------------------------"
-			discord.ChannelMessageSend(mahasanChannelId, words)
+			SendDiscord(discord, mahasanChannelID, words)
 			fmt.Println(words)
 		} else {
 			nowords := "No available schedule \n"
 			nowords += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
 			nowords += "--------------------------------------"
 			if forcely {
-				discord.ChannelMessageSend(mahasanChannelId, nowords)
+				SendDiscord(discord, mahasanChannelID, nowords)
 			}
 			fmt.Println(nowords)
 		}
@@ -95,4 +95,18 @@ func DoMagic(discord *discordgo.Session, forcely bool) {
 	c.Visit(url)
 
 	fmt.Println("--- Scrapping Ended ---")
+}
+
+func SendDiscord(discord *discordgo.Session, channelID, words string) {
+	if config.ConfigData.DiscordStatus == "on" {
+		discord.ChannelMessageSend(channelID, words)
+	}
+}
+
+func SendLine(lineSession *linebot.Client, channelID, words string) {
+	if config.ConfigData.LineStatus == "on" {
+		// discord.ChannelMessageSend(channelID, words)
+		followerIds := lineSession.GetFollowerIDs(config.ConfigData.LineAccessToken)
+		fmt.Println(followerIds)
+	}
 }

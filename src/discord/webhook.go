@@ -8,7 +8,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func AvailableCommand(discordSession *discordgo.Session) {
+func AvailableCommand() {
+	discordSession := config.DiscordSession
 	appID := config.ConfigData.DiscordAppId
 	guildID := config.ConfigData.DiscordGuildId
 	_, err := discordSession.ApplicationCommandBulkOverwrite(appID, guildID, []*discordgo.ApplicationCommand{
@@ -25,7 +26,7 @@ func AvailableCommand(discordSession *discordgo.Session) {
 		fmt.Println("err bulk overwrite ", err)
 	}
 	discordSession.AddHandler(func(
-		s *discordgo.Session,
+		_ *discordgo.Session,
 		i *discordgo.InteractionCreate,
 	) {
 		data := i.ApplicationCommandData()
@@ -56,7 +57,7 @@ func AvailableCommand(discordSession *discordgo.Session) {
 			if err != nil {
 				fmt.Println("err interaction force-check response ", err)
 			}
-			webscraper.DoMagic(discordSession, true)
+			webscraper.DoMagic(true)
 		}
 	})
 	err = discordSession.Open()
