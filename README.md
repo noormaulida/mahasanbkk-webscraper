@@ -1,6 +1,6 @@
 ### Mahasan BKK - Web Scraper
 
-Automatically check available schedule every 5 mins from Mahasan BKK website and send the notification to discord channel through discord bot.<br>
+Automatically check available schedule every 2 mins from Mahasan BKK website and send the notification to discord channel through discord bot.<br>
 Developed with love to help my partner to get Mahasan schedule easily.
 
 #### Technology Stacks:
@@ -15,7 +15,7 @@ Developed with love to help my partner to get Mahasan schedule easily.
 #### List of Discord Application Commands:
 
 1. `/hello-bot` to say hi to the bot, it'll reply of course because my bot is lovely bot ❤️
-1. `/force-check` to force check schedule right away _(I know sometimes 5 mins feels like 5 decades)_
+1. `/force-check` to force check schedule right away _(I know sometimes 2 mins feels like 100 decades)_
 
 #### External Libraries:
 

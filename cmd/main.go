@@ -40,7 +40,7 @@ func main() {
 	if config.ConfigData.ServerEnv == "local" {
 		scheduler.AddFunc("*/1 * * * *", WebScraper)
 	} else {
-		scheduler.AddFunc("*/5 * * * *", WebScraper)
+		scheduler.AddFunc("*/2 * * * *", WebScraper)
 	}
 	go scheduler.Start()
 	DiscordCommand()
