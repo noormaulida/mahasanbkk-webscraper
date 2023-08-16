@@ -15,6 +15,8 @@ type Config struct {
 	DiscordToken     string `mapstructure:"DISCORD_TOKEN"`
 	DiscordAppId     string `mapstructure:"DISCORD_APP_ID"`
 	DiscordGuildId   string `mapstructure:"DISCORD_GUILD_ID"`
+
+	DiscordStatus string `mapstructure:"DISCORD_STATUS"`
 }
 
 var ConfigData *Config
