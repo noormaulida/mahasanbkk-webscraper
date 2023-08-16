@@ -4,19 +4,24 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"mahasanbkk-webscraper/pkg/config"
+	"mahasanbkk-webscraper/pkg/session"
 	"mahasanbkk-webscraper/src/entities"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/gocolly/colly"
 )
 
-func DoMagic(discord *discordgo.Session, forcely bool) {
+func DoMagic(forcely bool) (string, []*discordgo.MessageEmbed) {
 	url := config.ConfigData.MahasanUrl + config.ConfigData.MahasanSubUrl
-
+	mahasanChannelID := config.ConfigData.MahasanChannelID
 	availableScheds := []entities.Schedule{}
+	var messageEmbeds []*discordgo.MessageEmbed
+	var message string
 
 	fmt.Println("--- Scrapping Started ---")
 	c := colly.NewCollector(
@@ -53,8 +58,6 @@ func DoMagic(discord *discordgo.Session, forcely bool) {
 	})
 
 	c.OnHTML("div.available-table-body", func(h *colly.HTMLElement) {
-		mahasanChannelId := config.ConfigData.MahasanChannelID
-
 		// Set prefix of notif
 		var prefix string
 		if config.ConfigData.ServerEnv == "production" {
@@ -68,31 +71,62 @@ func DoMagic(discord *discordgo.Session, forcely bool) {
 				link := config.ConfigData.MahasanUrl + hrefLink[1:]
 				guest := el.ChildText("div.available-table-content > div:nth-child(1)")
 				time := el.ChildText("div.available-table-content > div:nth-child(2)")
+
+				guestString := strings.Replace(guest, " GUESTS", "", -1)
 				schedule := entities.Schedule{}
-				schedule.Notes = guest + " : " + time + " - " + link
+				schedule.Guest, _ = strconv.Atoi(guestString)
+				schedule.DateTime = time
+				schedule.Link = link
+				schedule.Notes = guest + " : " + time + " " + link
 				availableScheds = append(availableScheds, schedule)
 			})
-			words := prefix + " Available Schedule: \n"
+			message = prefix + " Available Schedule: \n"
 			for _, sched := range availableScheds {
-				fmt.Println(sched.Notes)
-				words += (sched.Notes + "\n")
+				message += (sched.Notes + "\n")
+				embed := discordgo.MessageEmbed{
+					Type:        discordgo.EmbedTypeRich,
+					Title:       sched.DateTime + " - " + strconv.Itoa(sched.Guest) + " Guests",
+					Description: sched.Link,
+					Fields: []*discordgo.MessageEmbedField{
+						{
+							Name:   "Date",
+							Value:  sched.DateTime,
+							Inline: true,
+						},
+						{
+							Name:   "Guest",
+							Value:  strconv.Itoa(sched.Guest),
+							Inline: true,
+						},
+					},
+				}
+				messageEmbeds = append(messageEmbeds, &embed)
 			}
-			words += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
-			words += "--------------------------------------"
-			discord.ChannelMessageSend(mahasanChannelId, words)
-			fmt.Println(words)
+			SendDiscordMessage(forcely, mahasanChannelID, message, messageEmbeds)
+			fmt.Println(message)
 		} else {
-			nowords := "No available schedule \n"
-			nowords += "Sent from " + config.ConfigData.ServerEnv + " environment (" + config.ConfigData.ServerHost + ")\n"
-			nowords += "--------------------------------------"
-			if forcely {
-				discord.ChannelMessageSend(mahasanChannelId, nowords)
-			}
-			fmt.Println(nowords)
+			message = "No available schedule \n"
+			SendDiscordMessage(forcely, mahasanChannelID, message, nil)
+			fmt.Println(message)
 		}
 	})
 
 	c.Visit(url)
 
 	fmt.Println("--- Scrapping Ended ---")
+
+	return message, messageEmbeds
+}
+
+func SendDiscordMessage(forcely bool, channelID string, message string, messageEmbeds []*discordgo.MessageEmbed) {
+	if config.ConfigData.DiscordStatus == "on" && !forcely {
+		if messageEmbeds != nil {
+			var prefix string
+			if config.ConfigData.ServerEnv == "production" {
+				prefix = "@everyone "
+			}
+			session.DiscordSession.ChannelMessageSend(channelID, prefix+"Available Schedule:")
+			session.DiscordSession.ChannelMessageSendEmbeds(channelID, messageEmbeds)
+		}
+	}
 }

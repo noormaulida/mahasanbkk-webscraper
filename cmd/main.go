@@ -2,6 +2,7 @@ package main
 
 import (
 	"mahasanbkk-webscraper/pkg/config"
+	"mahasanbkk-webscraper/pkg/session"
 	"mahasanbkk-webscraper/src/discord"
 	"mahasanbkk-webscraper/src/webscraper"
 
@@ -13,23 +14,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
 	cron "github.com/robfig/cron/v3"
-)
-
-var (
-	discordSession *discordgo.Session
-	err            error
 )
 
 func main() {
 	config.Load(".")
-
-	// Create new Discord Session
-	discordSession, err = discordgo.New("Bot " + config.ConfigData.DiscordToken)
-	if err != nil {
-		log.Fatalln("cannot create discord session. err ", err)
-	}
+	session.InitSession()
 
 	ApplyScheduler()
 	DiscordWebhook()
@@ -51,7 +41,7 @@ func ApplyRouter() {
 
 func WebScraper() {
 	fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " WebScraper is running.\n")
-	webscraper.DoMagic(discordSession, false)
+	webscraper.DoMagic(false)
 }
 
 func ApplyScheduler() {
@@ -63,6 +53,8 @@ func ApplyScheduler() {
 }
 
 func DiscordWebhook() {
-	fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " Discord Webhook is running.\n")
-	discord.AvailableCommand(discordSession)
+	if config.ConfigData.DiscordStatus == "on" {
+		fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " Discord Webhook is running.\n")
+		discord.Webhook()
+	}
 }
