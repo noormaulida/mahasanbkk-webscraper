@@ -7,14 +7,13 @@ import (
 
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/gofiber/fiber/v2"
 	cron "github.com/robfig/cron/v3"
 )
 
@@ -32,29 +31,22 @@ func main() {
 		log.Fatalln("cannot create discord session. err ", err)
 	}
 
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
-	scheduler := cron.New()
-	defer scheduler.Stop()
-
-	if config.ConfigData.ServerEnv == "local" {
-		scheduler.AddFunc("*/1 * * * *", WebScraper)
-	} else {
-		scheduler.AddFunc("*/2 * * * *", WebScraper)
-	}
-	go scheduler.Start()
-	DiscordCommand()
-
-	app := fiber.New()
-	app.Get("/mahasan-bot-status", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, your mahasan bot dev is up 🚀")
-	})
-	log.Fatal(app.Listen(":" + config.ConfigData.ServerPort))
+	ApplyScheduler()
+	DiscordWebhook()
+	ApplyRouter()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
 	<-sig
-	wg.Wait()
+}
+
+func ApplyRouter() {
+	http.HandleFunc("/mahasan-bot-status", func(w http.ResponseWriter, _ *http.Request) {
+		fmt.Fprintf(w, "Hello, your mahasan bot dev is up 🚀")
+	})
+
+	fmt.Println("🚀 Server is up at port 3000 🚀")
+	log.Fatal(http.ListenAndServe(":"+config.ConfigData.ServerPort, nil))
 }
 
 func WebScraper() {
@@ -62,7 +54,15 @@ func WebScraper() {
 	webscraper.DoMagic(discordSession, false)
 }
 
-func DiscordCommand() {
-	fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " Discord Command is running.\n")
+func ApplyScheduler() {
+	scheduler := cron.New()
+	defer scheduler.Stop()
+
+	scheduler.AddFunc("*/1 * * * *", WebScraper)
+	go scheduler.Start()
+}
+
+func DiscordWebhook() {
+	fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " Discord Webhook is running.\n")
 	discord.AvailableCommand(discordSession)
 }
