@@ -76,17 +76,23 @@ func DoMagic(forcely bool) (string, []*discordgo.MessageEmbed) {
 				schedule := entities.Schedule{}
 				schedule.Guest, _ = strconv.Atoi(guestString)
 				schedule.DateTime = time
-				schedule.Link = link
+				schedule.Link = strings.ReplaceAll(link, "#navbar", "")
 				schedule.Notes = guest + " : " + time + " " + link
 				availableScheds = append(availableScheds, schedule)
 			})
 			message = prefix + " Available Schedule: \n"
 			for _, sched := range availableScheds {
 				message += (sched.Notes + "\n")
+				autoBookLink := config.ConfigData.ServerHost
+				if config.ConfigData.ServerEnv == "local" {
+					autoBookLink += ":" + config.ConfigData.ServerPort
+				}
+				autoBookLink += "/mahasan-bot/auto-booking/" + GetTableID(sched.Link)
+				link := "🌹 Manual Booking: "+sched.Link+"\n"+"🌷 Auto Booking: "+autoBookLink
 				embed := discordgo.MessageEmbed{
 					Type:        discordgo.EmbedTypeRich,
 					Title:       sched.DateTime + " - " + strconv.Itoa(sched.Guest) + " Guests",
-					Description: sched.Link,
+					Description: link,
 					Fields: []*discordgo.MessageEmbedField{
 						{
 							Name:   "Date",
@@ -118,7 +124,15 @@ func DoMagic(forcely bool) (string, []*discordgo.MessageEmbed) {
 	return message, messageEmbeds
 }
 
-func SendDiscordMessage(forcely bool, channelID string, message string, messageEmbeds []*discordgo.MessageEmbed) {
+func GetTableID(url string) (tableID string) {
+	data := strings.SplitN(url, "booking-form.php?id=", 2)
+	if (len(data) == 2) {
+		tableID = data[1]
+	}
+	return
+}
+
+func SendDiscordMessage(forcely bool, channelID string, _ string, messageEmbeds []*discordgo.MessageEmbed) {
 	if config.ConfigData.DiscordStatus == "on" && !forcely {
 		if messageEmbeds != nil {
 			var prefix string
