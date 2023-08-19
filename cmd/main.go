@@ -7,7 +7,6 @@ import (
 	"mahasanbkk-webscraper/src/webscraper"
 
 	"fmt"
-	// "log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -33,9 +32,9 @@ func main() {
 
 func ApplyRouter() {
 	r := mux.NewRouter()
-    r.HandleFunc("/mahasan-bot/status", GlobalStatusHandler)
-    r.HandleFunc("/mahasan-bot/status/{type}", ServiceStatusHandler)
-    r.HandleFunc("/mahasan-bot/auto-booking/{id}", AutoBookingHandler)
+	r.HandleFunc("/mahasan-bot/status", GlobalStatusHandler)
+	r.HandleFunc("/mahasan-bot/status/{type}", ServiceStatusHandler)
+	r.HandleFunc("/mahasan-bot/auto-booking/{id}", AutoBookingHandler)
 	fmt.Println("🚀 Server is up at port 3000 🚀")
 	http.ListenAndServe(":"+config.ConfigData.ServerPort, r)
 }

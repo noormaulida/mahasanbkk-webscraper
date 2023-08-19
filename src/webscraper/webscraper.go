@@ -139,7 +139,6 @@ func SendDiscordMessage(forcely bool, channelID string, _ string, messageEmbeds 
 			if config.ConfigData.ServerEnv == "production" {
 				prefix = "@everyone "
 			}
-
 			session.DiscordSession.ChannelMessageSend(channelID, prefix+"Available Schedule:")
 			session.DiscordSession.ChannelMessageSendEmbeds(channelID, messageEmbeds)
 		}
