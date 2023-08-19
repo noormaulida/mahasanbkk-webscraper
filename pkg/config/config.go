@@ -11,12 +11,19 @@ type Config struct {
 
 	MahasanUrl       string `mapstructure:"MAHASAN_URL"`
 	MahasanSubUrl    string `mapstructure:"MAHASAN_SUB_URL"`
+	MahasanBookUrl   string `mapstructure:"MAHASAN_BOOK_URL"`
 	MahasanChannelID string `mapstructure:"MAHASAN_CHANNEL_ID"`
 	DiscordToken     string `mapstructure:"DISCORD_TOKEN"`
 	DiscordAppId     string `mapstructure:"DISCORD_APP_ID"`
 	DiscordGuildId   string `mapstructure:"DISCORD_GUILD_ID"`
 
 	DiscordStatus string `mapstructure:"DISCORD_STATUS"`
+
+	UserFName string   `mapstructure:"USER_FIRST_NAME"`
+	UserLName string   `mapstructure:"USER_LAST_NAME"`
+	UserEmail string   `mapstructure:"USER_EMAIL"`
+	UserPhone string   `mapstructure:"USER_PHONE"`
+	UserMessage string `mapstructure:"USER_MESSAGE"`
 }
 
 var ConfigData *Config

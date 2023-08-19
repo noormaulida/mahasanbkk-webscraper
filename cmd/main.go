@@ -7,13 +7,14 @@ import (
 	"mahasanbkk-webscraper/src/webscraper"
 
 	"fmt"
-	"log"
+	// "log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	cron "github.com/robfig/cron/v3"
 )
 
@@ -31,12 +32,41 @@ func main() {
 }
 
 func ApplyRouter() {
-	http.HandleFunc("/mahasan-bot-status", func(w http.ResponseWriter, _ *http.Request) {
-		fmt.Fprintf(w, "Hello, your mahasan bot dev is up 🚀")
-	})
-
+	r := mux.NewRouter()
+    r.HandleFunc("/mahasan-bot/status", GlobalStatusHandler)
+    r.HandleFunc("/mahasan-bot/status/{type}", ServiceStatusHandler)
+    r.HandleFunc("/mahasan-bot/auto-booking/{id}", AutoBookingHandler)
 	fmt.Println("🚀 Server is up at port 3000 🚀")
-	log.Fatal(http.ListenAndServe(":"+config.ConfigData.ServerPort, nil))
+	http.ListenAndServe(":"+config.ConfigData.ServerPort, r)
+}
+
+func GlobalStatusHandler(w http.ResponseWriter, _ *http.Request) {
+    w.WriteHeader(http.StatusOK)
+    fmt.Fprintf(w, "Hello, your mahasan bot dev is up 🚀")
+}
+
+func ServiceStatusHandler(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+	service := vars["type"]
+	if service == "discord" {
+		w.WriteHeader(http.StatusOK)
+    	fmt.Fprintf(w, "Discord webhook status: " + config.ConfigData.DiscordStatus)
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "Service "+service+ " not found")
+	}
+}
+
+func AutoBookingHandler(w http.ResponseWriter, r *http.Request) {
+    vars := mux.Vars(r)
+	tableId := vars["id"]
+	resp := webscraper.AutoBooking(tableId)
+	w.WriteHeader(http.StatusOK)
+	if resp.StatusCode == http.StatusOK {
+		fmt.Fprintf(w, "Successfully Auto-Booking Table ID: %v\n", tableId)
+	} else {
+		fmt.Fprintf(w, "Sorry, Auto-Booking Table ID: %v is Failed\nTry again in a minute.", tableId)
+	}
 }
 
 func WebScraper() {

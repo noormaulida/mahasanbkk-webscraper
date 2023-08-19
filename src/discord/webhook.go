@@ -26,7 +26,7 @@ func Webhook() {
 		fmt.Println("err bulk overwrite ", err)
 	}
 	session.DiscordSession.AddHandler(func(
-		s *discordgo.Session,
+		_ *discordgo.Session,
 		i *discordgo.InteractionCreate,
 	) {
 		data := i.ApplicationCommandData()
