@@ -13,6 +13,8 @@ type Config struct {
 	MahasanSubUrl    string `mapstructure:"MAHASAN_SUB_URL"`
 	MahasanBookUrl   string `mapstructure:"MAHASAN_BOOK_URL"`
 	MahasanChannelID string `mapstructure:"MAHASAN_CHANNEL_ID"`
+	WebAutoBookURL	 string `mapstructure:"WEB_AUTO_BOOK_URL"`
+
 	DiscordToken     string `mapstructure:"DISCORD_TOKEN"`
 	DiscordAppId     string `mapstructure:"DISCORD_APP_ID"`
 	DiscordGuildId   string `mapstructure:"DISCORD_GUILD_ID"`
