@@ -32,9 +32,10 @@ func main() {
 
 func ApplyRouter() {
 	r := mux.NewRouter()
-	r.HandleFunc("/mahasan-bot/status", GlobalStatusHandler)
-	r.HandleFunc("/mahasan-bot/status/{type}", ServiceStatusHandler)
-	r.HandleFunc("/mahasan-bot/auto-booking/{id}", AutoBookingHandler)
+	r.HandleFunc("/mahasan-bot/status", GlobalStatusHandler).Methods("GET")
+	r.HandleFunc("/mahasan-bot/status/{type}", ServiceStatusHandler).Methods("GET")
+	r.HandleFunc("/mahasan-bot/auto-booking/{id}", AutoBookingHandler).Methods("POST")
+
 	fmt.Println("🚀 Server is up at port 3000 🚀")
 	http.ListenAndServe(":"+config.ConfigData.ServerPort, r)
 }
@@ -57,14 +58,20 @@ func ServiceStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func AutoBookingHandler(w http.ResponseWriter, r *http.Request) {
+	if config.ConfigData.ServerEnv == "local" {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+	} else {
+		w.Header().Set("Access-Control-Allow-Origin", config.ConfigData.ServerHost)
+	}
     vars := mux.Vars(r)
 	tableId := vars["id"]
 	resp := webscraper.AutoBooking(tableId)
-	w.WriteHeader(http.StatusOK)
 	if resp.StatusCode == http.StatusOK {
+		w.WriteHeader(http.StatusCreated)
 		fmt.Fprintf(w, "Successfully Auto-Booking Table ID: %v\n", tableId)
 	} else {
-		fmt.Fprintf(w, "Sorry, Auto-Booking Table ID: %v is Failed\nTry again in a minute.", tableId)
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintf(w, "Sorry, Auto-Booking Table ID: %v is failed.\nTry again in a minute.", tableId)
 	}
 }
 

@@ -83,11 +83,7 @@ func DoMagic(forcely bool) (string, []*discordgo.MessageEmbed) {
 			message = prefix + " Available Schedule: \n"
 			for _, sched := range availableScheds {
 				message += (sched.Notes + "\n")
-				autoBookLink := config.ConfigData.ServerHost
-				if config.ConfigData.ServerEnv == "local" {
-					autoBookLink += ":" + config.ConfigData.ServerPort
-				}
-				autoBookLink += "/mahasan-bot/auto-booking/" + GetTableID(sched.Link)
+				autoBookLink := config.ConfigData.WebAutoBookURL +"?id="+ GetTableID(sched.Link)
 				link := "🌹 Manual Booking: "+sched.Link+"\n"+"🌷 Auto Booking: "+autoBookLink
 				embed := discordgo.MessageEmbed{
 					Type:        discordgo.EmbedTypeRich,
