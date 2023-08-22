@@ -2,27 +2,27 @@ package main
 
 import (
 	"mahasanbkk-webscraper/pkg/config"
+	"mahasanbkk-webscraper/src/crontab"
+	"mahasanbkk-webscraper/src/handler"
+	"mahasanbkk-webscraper/src/service"
 	"mahasanbkk-webscraper/pkg/session"
-	"mahasanbkk-webscraper/src/discord"
-	"mahasanbkk-webscraper/src/webscraper"
 
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/gorilla/mux"
-	cron "github.com/robfig/cron/v3"
+	
 )
 
 func main() {
 	config.Load(".")
 	session.InitSession()
 
-	ApplyScheduler()
-	DiscordWebhook()
+	crontab.ApplyScheduler()
+	service.DiscordWebhook()
 	ApplyRouter()
 
 	sig := make(chan os.Signal, 1)
@@ -32,65 +32,12 @@ func main() {
 
 func ApplyRouter() {
 	r := mux.NewRouter()
-	r.HandleFunc("/mahasan-bot/status", GlobalStatusHandler).Methods("GET")
-	r.HandleFunc("/mahasan-bot/status/{type}", ServiceStatusHandler).Methods("GET")
-	r.HandleFunc("/mahasan-bot/auto-booking/{id}", AutoBookingHandler).Methods("POST")
+	r.HandleFunc("/mahasan-bot/status", handler.GlobalStatusHandler).Methods("GET")
+	r.HandleFunc("/mahasan-bot/status/{service}", handler.ServiceStatusHandler).Methods("GET")
+	r.HandleFunc("/mahasan-bot/auto-booking/{id}", handler.AutoBookingHandler).Methods("POST")
+	r.HandleFunc("/mahasan-bot/{service}/{action}", handler.ServiceActionHandler).Methods("GET")
 
 	fmt.Println("🚀 Server is up at port 3000 🚀")
 	http.ListenAndServe(":"+config.ConfigData.ServerPort, r)
 }
 
-func GlobalStatusHandler(w http.ResponseWriter, _ *http.Request) {
-    w.WriteHeader(http.StatusOK)
-    fmt.Fprintf(w, "Hello, your mahasan bot dev is up 🚀")
-}
-
-func ServiceStatusHandler(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-	service := vars["type"]
-	if service == "discord" {
-		w.WriteHeader(http.StatusOK)
-    	fmt.Fprintf(w, "Discord webhook status: " + config.ConfigData.DiscordStatus)
-	} else {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf(w, "Service "+service+ " not found")
-	}
-}
-
-func AutoBookingHandler(w http.ResponseWriter, r *http.Request) {
-	if config.ConfigData.ServerEnv == "local" {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-	} else {
-		w.Header().Set("Access-Control-Allow-Origin", config.ConfigData.ServerHost)
-	}
-    vars := mux.Vars(r)
-	tableId := vars["id"]
-	resp := webscraper.AutoBooking(tableId)
-	if resp.StatusCode == http.StatusOK {
-		w.WriteHeader(http.StatusCreated)
-		fmt.Fprintf(w, "Successfully Auto-Booking Table ID: %v\n", tableId)
-	} else {
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, "Sorry, Auto-Booking Table ID: %v is failed.\nTry again in a minute.", tableId)
-	}
-}
-
-func WebScraper() {
-	fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " WebScraper is running.\n")
-	webscraper.DoMagic(false)
-}
-
-func ApplyScheduler() {
-	scheduler := cron.New()
-	defer scheduler.Stop()
-
-	scheduler.AddFunc("*/1 * * * *", WebScraper)
-	go scheduler.Start()
-}
-
-func DiscordWebhook() {
-	if config.ConfigData.DiscordStatus == "on" {
-		fmt.Printf(time.Now().Format("2006-01-02 15:04:05") + " Discord Webhook is running.\n")
-		discord.Webhook()
-	}
-}
