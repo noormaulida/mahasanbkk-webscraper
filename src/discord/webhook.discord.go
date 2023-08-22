@@ -21,6 +21,22 @@ func Webhook() {
 			Name:        "force-check",
 			Description: "Slash command to force the server to check schedule right away",
 		},
+		{
+			Name:        "status",
+			Description: "Slash command to check server status",
+		},
+		{
+			Name:        "discord-status",
+			Description: "Slash command to check discord webhook notification status",
+		},
+		{
+			Name:        "discord-start",
+			Description: "Slash command to start discord webhook notification",
+		},
+		{
+			Name:        "discord-stop",
+			Description: "Slash command to temporarily stop discord webhook notification",
+		},
 	})
 	if err != nil {
 		fmt.Println("err bulk overwrite ", err)
@@ -73,6 +89,71 @@ func Webhook() {
 
 			if err != nil {
 				fmt.Println("err interaction force-check response ", err)
+			}
+		case "status":
+			err := session.DiscordSession.InteractionRespond(
+				i.Interaction,
+				&discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: "Server is up 🚀",
+					},
+				},
+			)
+			if err != nil {
+				fmt.Println("err interaction status response ", err)
+			}
+		case "discord-status":
+			status := config.ConfigData.DiscordStatus
+			message := "Discord webhook is "
+			if status == "on" {
+				message += " up 🚀"
+			} else {
+				message += " down 😥"
+			}
+			err := session.DiscordSession.InteractionRespond(
+				i.Interaction,
+				&discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: message,
+					},
+				},
+			)
+			if err != nil {
+				fmt.Println("err interaction discord-status response ", err)
+			}
+		case "discord-start":
+			config.ConfigData.DiscordStatus = "on"
+			session.ResetPreviousTableIDs()
+			message := "Discord webhook is starting 🚀\n Sending notification is active."
+			err := session.DiscordSession.InteractionRespond(
+				i.Interaction,
+				&discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: message,
+					},
+				},
+			)
+			if err != nil {
+				fmt.Println("err interaction discord-start response ", err)
+			}
+		case "discord-stop":
+			config.ConfigData.DiscordStatus = "off"
+			session.ResetPreviousTableIDs()
+			message := "Discord webhook is stopping 😥\n Sending notification is now disabled. Please use /discord-start to start the webhook again."
+			err := session.DiscordSession.InteractionRespond(
+				i.Interaction,
+				&discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Content: message,
+					},
+				},
+			)
+			if err != nil {
+				fmt.Println("err interaction discord-start response ", err)
 			}
 		}
 	})

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"mahasanbkk-webscraper/pkg/config"
+	"mahasanbkk-webscraper/pkg/session"
 
 	"github.com/gorilla/mux"
 )
@@ -34,6 +35,7 @@ func ServiceActionHandler(w http.ResponseWriter, r *http.Request) {
 			config.ConfigData.DiscordStatus = "off"
 			fmt.Fprintf(w, "Discord webhook " + action + "ped\n")
 		}
+		session.ResetPreviousTableIDs()
     	fmt.Fprintf(w, "Current discord service status: " + config.ConfigData.DiscordStatus)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
