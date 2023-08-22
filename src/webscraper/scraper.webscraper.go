@@ -10,6 +10,7 @@ import (
 
 	"mahasanbkk-webscraper/pkg/config"
 	"mahasanbkk-webscraper/pkg/session"
+	// "mahasanbkk-webscraper/src/discord"
 	"mahasanbkk-webscraper/src/entities"
 
 	"github.com/bwmarrin/discordgo"
@@ -81,9 +82,11 @@ func DoMagic(forcely bool) (string, []*discordgo.MessageEmbed) {
 				availableScheds = append(availableScheds, schedule)
 			})
 			message = prefix + " Available Schedule: \n"
-			for _, sched := range availableScheds {
+			tableIDs := ""
+			for i, sched := range availableScheds {
 				message += (sched.Notes + "\n")
-				autoBookLink := config.ConfigData.WebAutoBookURL +"?id="+ GetTableID(sched.Link)
+				tableID := GetTableID(sched.Link)
+				autoBookLink := config.ConfigData.WebAutoBookURL +"?id="+ tableID
 				link := "🌹 Manual Booking: "+sched.Link+"\n"+"🌷 Auto Booking: "+autoBookLink
 				embed := discordgo.MessageEmbed{
 					Type:        discordgo.EmbedTypeRich,
@@ -102,12 +105,21 @@ func DoMagic(forcely bool) (string, []*discordgo.MessageEmbed) {
 						},
 					},
 				}
+				if i > 0 {
+					tableIDs += ","
+				}
+				tableIDs += tableID
+
 				messageEmbeds = append(messageEmbeds, &embed)
 			}
-			SendDiscordMessage(forcely, mahasanChannelID, message, messageEmbeds)
+
+			if !session.CheckPreviousTableIDs(tableIDs) {
+				SendDiscordMessage(forcely, mahasanChannelID, message, messageEmbeds)
+			}
 			fmt.Println(message)
 		} else {
 			message = "No available schedule \n"
+			session.ResetPreviousTableIDs()
 			SendDiscordMessage(forcely, mahasanChannelID, message, nil)
 			fmt.Println(message)
 		}
